@@ -1,0 +1,55 @@
+name: DevSecDemo
+run-name: Deploy Sample Workshop to Pages
+on: 
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  FortiDevSec-Run:
+    runs-on: self-hosted
+    if: ${{ true }}
+    steps:
+      - name: Run SAST scan
+        uses: actions/checkout@v2
+      - run: |
+          env | grep -E "GITHUB_ACTIONS|GITHUB_RUN_NUMBER|GITHUB_REF_NAME|GITHUB_SHA" > /tmp/env
+          docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest
+          docker run --rm --env-file /tmp/env --mount type=bind,source=$PWD,target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest
+  Deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: self-hosted
+    steps:
+      - name: Check out repo code
+        uses: actions/checkout@v3
+      - name: Build hugo workshop Docker image
+        run: docker build hugo-workshop .
+      - name: Build site
+        run: docker run --mount type=bind,source=${{github.workspace}}/docs,target=/home/app/docs hugo-workshop
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # Upload entire repository
+          path: './docs'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
