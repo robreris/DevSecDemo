@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   FortiDevSec-Run:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: ${{ true }}
     steps:
       - name: Run SAST scan
@@ -35,12 +35,13 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    needs: FortiDevSec-Run
     steps:
       - name: Check out repo code
         uses: actions/checkout@v3
       - name: Build hugo workshop Docker image
-        run: docker build hugo-workshop .
+        run: docker build -t hugo-workshop .
       - name: Build site
         run: docker run --mount type=bind,source=${{github.workspace}}/docs,target=/home/app/docs hugo-workshop
       - name: Setup Pages
