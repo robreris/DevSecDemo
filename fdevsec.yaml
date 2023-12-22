@@ -2,7 +2,7 @@ version: v1
 
 id:
   org: 2e3b7756-bbaa-4d09-8ee1-8beabd0c6a2c
-  app: c1f207e2-b833-4b00-b830-2a1ee662fae4 
+  app: 411345c8-ce06-4788-8c72-f96f7a241d8b
 
 scanners:
   - sast
@@ -14,5 +14,3 @@ scanners:
 resource:
   serial_scan: false
 
-fail_pipeline:
-  risk_rating: 7
