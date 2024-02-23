@@ -13,8 +13,19 @@ env:
   ECS_SERVICE: ECS-Service-test-ecs-stack
 
 jobs:
+  FortiDevSec-Run:
+    runs-on: self-hosted
+    if: ${{ true }}
+    steps:
+      - name: Run SAST scan
+        uses: actions/checkout@v2
+      - run: |
+          env | grep -E "GITHUB_ACTIONS|GITHUB_RUN_NUMBER|GITHUB_REF_NAME|GITHUB_SHA" > /tmp/env
+          docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest
+          docker run --rm --env-file /tmp/env --mount type=bind,source=$PWD,target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest
   DeployStackTest:
     runs-on: self-hosted
+    needs: FortiDevSec-Run
     steps:
       - name: Check out repo code
         uses: actions/checkout@v2
@@ -39,21 +50,10 @@ jobs:
         run: |
           sleep 5
           aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
-  FortiDevSec-Run:
-    runs-on: self-hosted
-    if: ${{ true }}
-    needs: DeployStackTest
-    steps:
-      - name: Run SAST scan
-        uses: actions/checkout@v2
-      - run: |
-          env | grep -E "GITHUB_ACTIONS|GITHUB_RUN_NUMBER|GITHUB_REF_NAME|GITHUB_SHA" > /tmp/env
-          docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest
-          docker run --rm --env-file /tmp/env --mount type=bind,source=$PWD,target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest
   FortiDAST-Run:
     runs-on: self-hosted
     if: ${{ true }}
-    needs: FortiDevSec-Run
+    needs: DeployStackTest
     steps:
       - name: Run DAST scan
         uses: actions/checkout@v2
