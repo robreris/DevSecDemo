@@ -15,7 +15,7 @@ env:
 jobs:
   FortiDevSec-Run:
     runs-on: self-hosted
-    #if: ${{ false }}
+    if: ${{ false }}
     steps:
       - name: Run SAST scan
         uses: actions/checkout@v2
