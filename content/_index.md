@@ -1,5 +1,5 @@
 ---
-title: "Fortinet TECWorkshop Template - MVP1"
+title: "Fortinet TECWorkshop Template - MVP2"
 menuTitle: "TECWorkshop Template"
 weight: 1
 archetype: home
