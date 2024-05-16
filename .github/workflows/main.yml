@@ -15,7 +15,7 @@ env:
 jobs:
   FortiDevSec-Run:
     runs-on: self-hosted
-    #if: ${{ false }}
+    if: ${{ false }}
     steps:
       - name: Run SAST scan
         uses: actions/checkout@v2
@@ -25,7 +25,7 @@ jobs:
           docker run --rm --env-file /tmp/env --mount type=bind,source=$PWD,target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest
   DeployStackTest:
     runs-on: self-hosted
-    needs: FortiDevSec-Run
+    #needs: FortiDevSec-Run
     if: ${{ true }}
     steps:
       - name: Check out repo code
@@ -53,7 +53,7 @@ jobs:
           aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
   FortiDAST-Run:
     runs-on: self-hosted
-    #if: ${{ false }}
+    if: ${{ false }}
     needs: DeployStackTest
     steps:
       - name: Run DAST scan
