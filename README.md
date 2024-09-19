@@ -1,7 +1,5 @@
 # Hugo App for FortiDevSec/FortiDAST Demo
 
-Version 2
-
 ### To run the Dockerized Hugo 
 
 Prequisite: Docker 
