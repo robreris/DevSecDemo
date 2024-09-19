@@ -5,4 +5,4 @@ RUN dpkg -i /home/hugo_0.111.3_linux-amd64.deb
 COPY . /home/app
 WORKDIR /home/app
 RUN git submodule update --init
-CMD ["hugo", "--destination", "/home/app/docs"]
+CMD ["hugo", "server", "--bind=0.0.0.0"]
