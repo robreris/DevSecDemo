@@ -2,10 +2,11 @@ version: v1
 
 id:
   org: 2e3b7756-bbaa-4d09-8ee1-8beabd0c6a2c
-  app: c1f207e2-b833-4b00-b830-2a1ee662fae4 
+  app: b964697c-5f02-4cc9-a286-793d3dd0c757
 
 scanners:
   - sast
+  - dast
   - secret
   - sca
   - iac
@@ -14,5 +15,6 @@ scanners:
 resource:
   serial_scan: false
 
-fail_pipeline:
-  risk_rating: 7
+dast:
+  url: http://34.201.198.188:1313/DevSecDASTDemo
+  full_scan: false #true|false

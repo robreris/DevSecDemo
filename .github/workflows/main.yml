@@ -1,29 +1,22 @@
-name: DevSecDemo
-run-name: Deploy Sample Workshop to Pages
+name: DevSecDASTDemo
+run-name: Deploy New Container
 on: 
   push:
     branches:
       - main
+      - feature1
 
 env:
   AWS_REGION: us-east-1
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  ECR_REPOSITORY: devsecdastdemo
+  ECS_CLUSTER: devsecdastdemo
+  ECS_SERVICE: ECS-Service-ecs-deploy-1110
+#  ECS_SERVICE: ECS-Service-devsecdast-ecs-demo
 
 jobs:
   FortiDevSec-Run:
-    runs-on: ubuntu-latest
-    if: ${{ true }}
+    runs-on: self-hosted
+    #if: ${{ false }}
     steps:
       - name: Run SAST scan
         uses: actions/checkout@v2
@@ -31,26 +24,42 @@ jobs:
           env | grep -E "GITHUB_ACTIONS|GITHUB_RUN_NUMBER|GITHUB_REF_NAME|GITHUB_SHA" > /tmp/env
           docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest
           docker run --rm --env-file /tmp/env --mount type=bind,source=$PWD,target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest
-  Deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+  DeployStackTest:
+    runs-on: self-hosted
     needs: FortiDevSec-Run
+    if: ${{ true }}
     steps:
       - name: Check out repo code
-        uses: actions/checkout@v3
-      - name: Build hugo workshop Docker image
-        run: docker build -t hugo-workshop .
-      - name: Build site
-        run: docker run --mount type=bind,source=${{github.workspace}}/docs,target=/home/app/docs hugo-workshop
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          # Upload entire repository
-          path: './docs'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
+      - name: build, tag, push
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |          
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      - name: Wait on cluster to stabilize
+        run: |
+          sleep 5
+          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
+  FortiDAST-Run:
+    runs-on: self-hosted
+    #if: ${{ false }}
+    needs: DeployStackTest
+    steps:
+      - name: Run DAST scan
+        uses: actions/checkout@v2
+      - run: |
+          env | grep -E "GITHUB_ACTIONS|GITHUB_RUN_NUMBER|GITHUB_REF_NAME|GITHUB_SHA" > /tmp/env
+          docker pull registry.fortidevsec.forticloud.com/fdevsec_dast:latest
+          docker run --rm --mount type=bind,source="$PWD",target=/scan registry.fortidevsec.forticloud.com/fdevsec_dast:latest
