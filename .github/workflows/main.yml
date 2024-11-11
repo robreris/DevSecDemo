@@ -10,8 +10,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: devsecdastdemo
   ECS_CLUSTER: devsecdastdemo
-  ECS_SERVICE: ECS-Service-ecs-deploy-1110
-#  ECS_SERVICE: ECS-Service-devsecdast-ecs-demo
+  ECS_SERVICE: ECS-Service-devsecdast-ecs-demo
 
 jobs:
   FortiDevSec-Run:
