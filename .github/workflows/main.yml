@@ -10,12 +10,13 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: devsecdastdemo
   ECS_CLUSTER: devsecdastdemo
-  ECS_SERVICE: ECS-Service-devsecdast-ecs-demo
+  ECS_SERVICE: ECS-Service-ecs-deploy
+#  ECS_SERVICE: ECS-Service-devsecdast-ecs-demo
 
 jobs:
   FortiDevSec-Run:
     runs-on: self-hosted
-    if: ${{ false }}
+    #if: ${{ false }}
     steps:
       - name: Run SAST scan
         uses: actions/checkout@v2
@@ -25,7 +26,7 @@ jobs:
           docker run --rm --env-file /tmp/env --mount type=bind,source=$PWD,target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest
   DeployStackTest:
     runs-on: self-hosted
-    #needs: FortiDevSec-Run
+    needs: FortiDevSec-Run
     if: ${{ true }}
     steps:
       - name: Check out repo code
