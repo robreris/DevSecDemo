@@ -16,7 +16,7 @@ env:
 jobs:
   FortiDevSec-Run:
     runs-on: self-hosted
-    #if: ${{ false }}
+    if: ${{ false }}
     steps:
       - name: Run SAST scan
         uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
   DeployStackTest:
     runs-on: self-hosted
     needs: FortiDevSec-Run
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
       - name: Check out repo code
         uses: actions/checkout@v2
@@ -54,8 +54,8 @@ jobs:
           aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
   FortiDAST-Run:
     runs-on: self-hosted
-    if: ${{ false }}
-    needs: DeployStackTest
+    #if: ${{ false }}
+    #needs: DeployStackTest
     steps:
       - name: Run DAST scan
         uses: actions/checkout@v2
